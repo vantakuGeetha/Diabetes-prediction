@@ -1,0 +1,71 @@
+# Import necessary libraries
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score, classification_report, roc_curve, auc
+from sklearn.datasets import load_diabetes
+
+# Load the diabetes dataset
+diabetes = load_diabetes()
+X = diabetes.data
+y = (diabetes.target > 140).astype(int)  # Binary classification: 1 if target > 140, else 0
+
+# Split the dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Decision Tree Classifier
+dt_classifier = DecisionTreeClassifier(random_state=42)
+dt_classifier.fit(X_train, y_train)
+dt_predictions = dt_classifier.predict(X_test)
+
+# Random Forest Classifier
+rf_classifier = RandomForestClassifier(random_state=42)
+rf_classifier.fit(X_train, y_train)
+rf_predictions = rf_classifier.predict(X_test)
+
+# k-Nearest Neighbors (KNN) Classifier
+knn_classifier = KNeighborsClassifier(n_neighbors=3)
+knn_classifier.fit(X_train, y_train)
+knn_predictions = knn_classifier.predict(X_test)
+
+# Evaluate and print the accuracy of each model
+print("Decision Tree Accuracy:", accuracy_score(y_test, dt_predictions))
+print("Random Forest Accuracy:", accuracy_score(y_test, rf_predictions))
+print("KNN Accuracy:", accuracy_score(y_test, knn_predictions))
+
+# Print the classification report for more detailed metrics
+print("\nDecision Tree Classification Report:\n", classification_report(y_test, dt_predictions))
+print("\nRandom Forest Classification Report:\n", classification_report(y_test, rf_predictions))
+print("\nKNN Classification Report:\n", classification_report(y_test, knn_predictions))
+
+# Plot ROC curves
+plt.figure(figsize=(10, 6))
+
+# Decision Tree
+fpr_dt, tpr_dt, _ = roc_curve(y_test, dt_classifier.predict_proba(X_test)[:, 1])
+roc_auc_dt = auc(fpr_dt, tpr_dt)
+plt.plot(fpr_dt, tpr_dt, label=f'Decision Tree (AUC = {roc_auc_dt:.2f})')
+
+# Random Forest
+fpr_rf, tpr_rf, _ = roc_curve(y_test, rf_classifier.predict_proba(X_test)[:, 1])
+roc_auc_rf = auc(fpr_rf, tpr_rf)
+plt.plot(fpr_rf, tpr_rf, label=f'Random Forest (AUC = {roc_auc_rf:.2f})')
+
+# KNN
+fpr_knn, tpr_knn, _ = roc_curve(y_test, knn_classifier.predict_proba(X_test)[:, 1])
+roc_auc_knn = auc(fpr_knn, tpr_knn)
+plt.plot(fpr_knn, tpr_knn, label=f'KNN (AUC = {roc_auc_knn:.2f})')
+
+# Plot details
+plt.plot([0, 1], [0, 1], color='navy', linestyle='--')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver Operating Characteristic (ROC) Curves')
+plt.legend(loc="lower right")
+plt.show()
